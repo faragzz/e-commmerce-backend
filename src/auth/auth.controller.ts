@@ -9,9 +9,7 @@ import {GenerateOtpDTO} from './dto/generateOTP.dto';
 import {RefreshDTO} from './dto/refresh.dto';
 import {VerifyOtpDTO} from './dto/verifyOTP.dto';
 import {logoutDTO} from './dto/logout.dto';
-import {FindAllUserDto} from '../users/dto/findAll.dto';
 import {ServiceByRole} from "./RoleServiceFactory";
-import {Business} from "../business/schema/business.schema";
 import {ApiBody, ApiOperation, ApiQuery, ApiTags} from "@nestjs/swagger";
 import {VerifyEmailDTO} from "./dto/verifyEmail.dto";
 
@@ -37,7 +35,7 @@ export class AuthController {
     @Public()
     @HttpCode(HttpStatus.OK)
     @Post('register')
-    register(@Body() user: UserDTO): Promise<User | Business> {
+    register(@Body() user: UserDTO): Promise<User> {
         const service = this.serviceByRole.getServiceByRole(user.role);
         console.log("service ", service, " role passed ", user.role);
         return this.authService.register(user, service);

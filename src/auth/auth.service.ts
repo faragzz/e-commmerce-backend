@@ -9,9 +9,6 @@ import * as speakeasy from 'speakeasy';
 import {InjectModel} from '@nestjs/mongoose';
 import {Model} from 'mongoose';
 import {AuthServiceInterface} from "./AuthServiceInterface";
-import {Business, BusinessDocument} from "../business/schema/business.schema";
-import {BusinessService} from "../business/business.service";
-import {BusinessDTO} from "../business/dto/business";
 import {verifyEmailTemplate} from "../email/templates/verify-email";
 import {verifiedEmailHtml} from "../email/templates/success-email-verification";
 import {verificationFailedHtml} from "../email/templates/failure-email-verification";
@@ -25,7 +22,6 @@ export class AuthService {
         private mailService: EmailService,
         private emailVerificationGateway: EmailVerificationGateway,
         @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-        @InjectModel(User.name) private readonly businessModel: Model<BusinessDocument>
     ) {
     }
 
@@ -44,7 +40,7 @@ export class AuthService {
         return {access_token, refresh_token};
     }
 
-    async register(user: UserDTO | BusinessDTO, service: AuthServiceInterface): Promise<User | Business> {
+    async register(user: UserDTO, service: AuthServiceInterface): Promise<User> {
         const createdUser = await service.create(user);
         if (!createdUser) throw new UnauthorizedException();
         // try {
@@ -119,9 +115,7 @@ export class AuthService {
             step: 60,
         });
 
-        let user: any;
-        if (role == 'business') user = await this.businessModel.findOne({email});
-        else user = await this.userModel.findOne({email});
+        const user = await this.userModel.findOne({email});
         if (!user) {
             console.error("User not found.");
             return {error: "User not found"};
@@ -150,10 +144,7 @@ export class AuthService {
             encoding: 'base32',
             step: 60,
         });
-
-        let user: any;
-        if (role == 'business') user = await this.businessModel.findOne({email});
-        else user = await this.userModel.findOne({email});
+        const user = await this.userModel.findOne({email});
         if (!user) {
             console.error("User not found.");
             return {error: "User not found"};
@@ -174,9 +165,7 @@ export class AuthService {
     }
 
     async verifyOTP(email: string, token: string, service: AuthServiceInterface) {
-        let user: any;
-        if (service instanceof BusinessService) user = await this.businessModel.findOne({email});
-        else user = await this.userModel.findOne({email});
+        const user = await this.userModel.findOne({email});
 
         if (!user) {
             console.error("User not found.");
@@ -209,7 +198,7 @@ export class AuthService {
         return {access_token, refresh_token};
     }
 
-    async verifyEmailToken(email: string, token: string,role:string, service: AuthServiceInterface) {
+    async verifyEmailToken(email: string, token: string, role: string, service: AuthServiceInterface) {
         const user = await service.findOne(email);
         if (!user) {
             console.error("User not found.");
@@ -217,7 +206,7 @@ export class AuthService {
         }
         if (!user.emailVerificationToken) {
             console.error("emailVerificationToken key missing.");
-            this.emailVerificationGateway.sendVerificationStatusUpdate(user.email,user.isEmailVerified);
+            this.emailVerificationGateway.sendVerificationStatusUpdate(user.email, user.isEmailVerified);
             return {error: "No emailVerificationToken key found for user"};
         }
         const verified = speakeasy.totp.verifyDelta({
@@ -229,11 +218,11 @@ export class AuthService {
         });
         if (!verified) {
             console.error("❌ Invalid emailVerificationToken.");
-            return verificationFailedHtml(user.email,role);
+            return verificationFailedHtml(user.email, role);
         }
         user.isEmailVerified = true;
         await (user as any).save();
-        this.emailVerificationGateway.sendVerificationStatusUpdate(user.email,user.isEmailVerified);
+        this.emailVerificationGateway.sendVerificationStatusUpdate(user.email, user.isEmailVerified);
         return verifiedEmailHtml(user.username);
     }
 

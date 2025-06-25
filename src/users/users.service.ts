@@ -5,8 +5,6 @@ import {InjectModel} from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import {UserDTO} from './dto/user';
 import {AuthServiceInterface} from "../auth/AuthServiceInterface";
-import {UpdateBusinessProfileDTO} from "../business/dto/updateBusinessProfile.dto";
-import {Business} from "../business/schema/business.schema";
 import {UpdateUserProfileDTO} from "./dto/updateUserProfile.dto";
 
 @Injectable()
