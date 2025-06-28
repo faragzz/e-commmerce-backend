@@ -11,6 +11,7 @@ import { User, UserSchema } from '../users/schema/user.schema';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ServiceByRole } from './RoleServiceFactory';
 import { EmailVerificationGateway } from './auth.gateway';
+import { RolesGuard } from './Guards/roles.guard';
 
 @Module({
     imports: [
@@ -33,9 +34,14 @@ import { EmailVerificationGateway } from './auth.gateway';
             provide: APP_GUARD,
             useClass: AuthGuard,
         },
+        {
+            provide: APP_GUARD,
+            useClass: RolesGuard,
+        },
         AuthService,
         ServiceByRole,
         EmailVerificationGateway,
     ],
+    exports: [JwtModule],
 })
 export class AuthModule {}
